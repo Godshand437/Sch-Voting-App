@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROSEBUD School Election Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo"><img src="{{ url_for('static', filename='images/School-logo.png') }}" alt="Rosebud Logo"
+                class="nav-logo">
+            <span>Rosebud College Elections 2026</span>
+        </div>
+        <div id="user-status">Status: Not Logged In</div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Elect student councils online and cast votes digitally</h1>
+                    <ul class="benefit-list">
+                        <li>Conduct voting online, and increase transparency.</li>
+                        <li>Reach voters anywhere and maximize student turnout.</li>
+                        <li>Secure, real-time results available with a single click.</li>
+                    </ul>
+                </div>
+
+                <div id="login-section" class="login-card">
+                    <h2>Voter Portal</h2>
+                    <p>Please Enter your Student ID to begin.</p>
+                    <div class="input-group">
+                        <input type="text" id="username" placeholder="Student ID">
+                        <input type="password" id="password" placeholder="Password (Admin only)">
+                    </div>
+                    <div class="button-group">
+                        <button onclick="handleLogin()" class="btn-start">Vote Now</button>
+                        <button class="btn-contact">Need Help?</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="voting-section" class="hidden">
+        <header class="section-header">
+            <h2>Candidate Ballot</h2>
+            <p>Read the manifestos carefully before casting your vote.</p>
+        </header>
+
+        <div class="candidate-grid" id="candidate-list">
+        </div>
+
+        <button onclick="submitVotes()" class="btn-success">Finalize & Submit My Ballot</button>
+    </section>
+
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo-group">
+                    <img src="{{ url_for('static', filename='images/School-logo.png') }}" alt="Logo"
+                        class="footer-logo">
+                    <h3>Rosebud College</h3>
+                </div>
+                <p>Empowering student voices through digital integrity.</p>
+            </div>
+            <div class="footer-links">
+                <strong>Quick Links</strong>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Election Rules</a>
+                <a href="#">Contact Support</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Built by Godshand | &copy; 2026 Rosebud College Election Portal. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

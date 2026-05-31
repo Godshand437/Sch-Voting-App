@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosebud Student Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --navy: #002147;
+            --orange: #ff4500;
+        }
+
+        body {
+            display: flex;
+            margin: 0;
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--navy);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .profile-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--orange);
+            object-fit: cover;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-menu li {
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(255, 69, 0, 0.2);
+            color: var(--orange);
+        }
+
+        .nav-menu li.active {
+            background: var(--orange);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-section" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h3> Election Visibility</h3>
+        <label class="switch">
+            <input type="checkbox" id="resultsToggle" onchange="updateVisibility(this.checked)">
+            <span class="slider"></span>
+        </label>
+        <span id="visibilityStatus">Results are currently HIDDEN</span>
+    </div>
+
+    <div class="admin-section" style="background: white; padding: 20px; border-radius: 10px;">
+        <h3> Registered Students</h3>
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f4f4f4; text-align: left;">
+                    <th style="padding:10px;">ID</th>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="editModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div style="background:white; width:400px; margin:100px auto; padding:20px; border-radius:10px;">
+            <h3>Edit Student Profile</h3>
+            <input type="hidden" id="editSid">
+            <input type="text" id="editName" placeholder="Name" style="width:100%; margin-bottom:10px;">
+            <input type="text" id="editClass" placeholder="Class" style="width:100%; margin-bottom:10px;">
+            <p>Update Photo:</p>
+            <input type="file" id="editFile" style="margin-bottom:20px;">
+            <button onclick="saveStudentEdit()"
+                style="background:var(--navy); color:white; padding:10px; width:100%;">Save
+                Changes</button>
+            <button onclick="document.getElementById('editModal').style.display='none'"
+                style="width:100%; margin-top:5px;">Cancel</button>
+        </div>
+    </div>
+</body>
+
+</html>

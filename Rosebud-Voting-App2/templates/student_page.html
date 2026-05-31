@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosebud Student Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --navy: #002147;
+            --orange: #ff4500;
+        }
+
+        body {
+            display: flex;
+            margin: 0;
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--navy);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .profile-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--orange);
+            object-fit: cover;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-menu li {
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(255, 69, 0, 0.2);
+            color: var(--orange);
+        }
+
+        .nav-menu li.active {
+            background: var(--orange);
+            font-weight: bold;
+        }
+
+        .main {
+            margin-left: 280px;
+            padding: 40px;
+            width: 100%;
+        }
+
+        .pos-header {
+            background: var(--navy);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 30px 0 15px 0;
+            font-size: 1.1em;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .candidate-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .candidate-card.selected {
+            border-color: var(--orange);
+            background: #fff5f0;
+        }
+
+        .cand-img-circle {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+
+        .manifesto-text {
+            font-size: 0.8em;
+            color: #777;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn-action {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: var(--navy);
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--orange);
+        }
+
+        select.form-control {
+            background: white;
+            cursor: pointer;
+        }
+
+        .vote-tracker {
+            position: sticky;
+            bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="profile-card">
+            <img src="{{ url_for('static', filename='uploads/' + student.image_path) }}" class="profile-img">
+            <h3>{{ student.name }}</h3>
+            <p></p>
+            {{ student.student_id }} | {{ student.class }}
+        </div>
+        <ul class="nav-menu">
+            <li onclick="window.location.href='/student_portal/{{ student.student_id }}'" class="active"> Dashboard
+            </li>
+            <li onclick="window.location.href='/election_ballot/{{ student.student_id }}'"> Election Ballot</li>
+            <li onclick="showTab('volunteer', this)"> Volunteer for Office</li>
+            <li onclick="window.location.href='/election_result/{{ student.student_id }}' "> Election Results</li>
+            <li onclick="window.location.href='/'" style="color: #ff9999; margin-top: 15px;">🚪 Log Out</li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div id="ballot" class="tab-content active">
+            <h1>Welcome, Cast Your Votes - 2025/2026 Session</h1>
+            <p>Please select <b>one</b> candidate for each Council position.</p>
+
+            <div id="ballot-sections">
+            </div>
+
+            <div class="vote-tracker">
+                <p>Positions Filled: <span id="count">0</span></p>
+                <button class="btn-action" style="background:var(--orange); width: auto; margin:0;"
+                    onclick="castVote()">Submit</button>
+            </div>
+        </div>
+
+        <div id="volunteer" class="tab-content">
+            <h1>Run for Office</h1>
+            <p style="color: #666; margin-bottom: 25px;">Ready to lead? Select your desired position and tell us why
+                you're the
+                best fit.</p>
+
+            <div
+                style="background:white; padding:40px; border-radius:15px; max-width:600px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+
+                <div class="form-group">
+                    <label>Select Position</label>
+                    <select id="v_pos" class="form-control">
+                        <option value="" disabled selected>-- Choose a Position --</option>
+                        <option>Student Council President</option>
+                        <option>Vice President</option>
+                        <option>Minister of ICT & Library</option>
+                        <option>Minister of Works & Labour</option>
+                        <option>Minister of Food & Power</option>
+                        <option>Minister of Social Affairs</option>
+                        <option>Minister of Health/Sanitation</option>
+                        <option>Minister of Laboratory</option>
+                        <option>Minister of Information/Publicity</option>
+                        <option>Minister of Sports (Male)</option>
+                        <option>Minister of Sports (Female)</option>
+                        <option>Senator</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Vision / Reason for Applying</label>
+                    <textarea id="v_reason" class="form-control" rows="6"
+                        placeholder="Describe what you plan to achieve if elected..."></textarea>
+                </div>
+
+                <button class="btn-action" style="background: var(--orange); margin-top: 10px;"
+                    onclick="submitVolunteer()">
+                    Submit Application
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="manifestoModal" class="modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+        <div
+            style="background:white; width:90%; max-width:500px; padding:30px; border-radius:15px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h2 style="color: var(--navy);">Candidate Action Required</h2>
+            <p>Your manifesto is currently set to the default. Would you like to update it now?</p>
+
+            <textarea id="manifestoText" class="form-control"
+                style="width:100%; height:150px; margin:15px 0; padding:10px;"
+                placeholder="Describe your vision for the school..."></textarea>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="saveManifesto()"
+                    style="background:var(--orange); color:white; padding:12px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">
+                    Save Manifesto
+                </button>
+                <button onclick="dismissModal()"
+                    style="background:#ccc; color:#333; padding:12px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;">
+                    Skip for Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVotes = {};
+
+        const hasVoted = parseInt("{{ student.has_voted or 0 }}");
+        const rawIsCandidate = "{{ is_candidate }}".toLowerCase();
+        const isCandidate = (rawIsCandidate === "true" || rawIsCandidate === "1");
+        const studentId = "{{ student.student_id }}";
+
+        window.onload = function () {
+            loadBallot();
+
+            const hasBeenPrompted = sessionStorage.getItem('manifestoPrompted');
+
+            if (isCandidate && !hasBeenPrompted) {
+                const modal = document.getElementById('manifestoModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    modal.style.justifyContent = 'center';
+                    modal.style.alignItems = 'center';
+                }
+            }
+
+            if (hasVoted === 1) {
+                const btn = document.querySelector('.btn-action');
+                if (btn) {
+                    btn.innerText = "ALREADY VOTED";
+                    btn.style.background = "#ccc";
+                    btn.disabled = true;
+                }
+            }
+        };
+
+        function dismissModal() {
+            document.getElementById('manifestoModal').style.display = 'none';
+            sessionStorage.setItem('manifestoPrompted', 'true');
+        }
+
+        function showTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        async function loadBallot() {
+            const res = await fetch('/api/candidates');
+            const candidates = await res.json();
+            const container = document.getElementById('ballot-sections');
+
+            const grouped = {};
+            candidates.forEach(c => {
+                if (!grouped[c.position]) grouped[c.position] = [];
+                grouped[c.position].push(c);
+            });
+
+            container.innerHTML = Object.keys(grouped).map(pos => `
+            <div class="pos-header">${pos.toUpperCase()}</div>
+            <div class="candidate-grid">
+                ${grouped[pos].map(c => `
+                    <div class="candidate-card" id="card-${c.id}" onclick="selectMe('${pos}', ${c.id})">
+                        <img src="/static/uploads/${c.image_path || 'default.png'}" 
+                             class="cand-img-circle" 
+                             onerror="this.src='/static/images/default_avatar.png'">
+                        <h3>${c.name}</h3>
+                        <p style="font-size: 0.8em; color: #666;">Grade: ${c.class_room}</p>
+                        <p class="manifesto-text">"${c.manifesto || 'Leadership for all!'}"</p>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
+        }
+
+        function selectMe(position, id) {
+            if (hasVoted === 1) {
+                alert("Action Denied: You have already cast your official vote!");
+                return;
+            }
+
+            if (selectedVotes[position]) {
+                const prevId = selectedVotes[position];
+                const prevCard = document.getElementById(`card-${prevId}`);
+                if (prevCard) prevCard.classList.remove('selected');
+            }
+
+            selectedVotes[position] = id;
+            document.getElementById(`card-${id}`).classList.add('selected');
+            document.getElementById('count').innerText = Object.keys(selectedVotes).length;
+        }
+
+        async function castVote() {
+            if (hasVoted === 1) return alert("You have already voted!");
+
+            const voteCount = Object.keys(selectedVotes).length;
+            if (voteCount === 0) {
+                return alert("Please select at least one candidate before proceeding!");
+            }
+
+            try {
+                localStorage.setItem('temp_ballot', JSON.stringify(selectedVotes));
+                window.location.href = `/election_ballot/{{ student.student_id }}`;
+            } catch (err) {
+                console.error("Storage Error:", err);
+                alert("An error occurred while saving your choices.");
+            }
+        }
+
+        async function submitVolunteer() {
+            const pos = document.getElementById('v_pos').value;
+            const reason = document.getElementById('v_reason').value;
+
+            if (!pos || !reason) {
+                return alert("Please select a position and provide a reason!");
+            }
+
+            try {
+                const response = await fetch('/api/volunteer/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        position: pos,
+                        reason: reason
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Application submitted successfully! Wait for admin approval.");
+                    document.getElementById('v_pos').value = "";
+                    document.getElementById('v_reason').value = "";
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                console.error("Submission error:", err);
+                alert("Could not connect to the server.");
+            }
+        }
+
+        async function saveManifesto() {
+            const text = document.getElementById('manifestoText').value;
+            if (!text) return alert("Please enter something!");
+
+            const res = await fetch('/api/candidate/update_manifesto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: "{{ student.student_id }}",
+                    manifesto: text
+                })
+            });
+
+            if (res.ok) {
+                alert("Manifesto saved!");
+                document.getElementById('manifestoModal').style.display = 'none';
+                loadBallot();
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Rosebud | Election Ballot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --navy: #002147;
+            --orange: #ff4500;
+        }
+
+        body {
+            display: flex;
+            margin: 0;
+            background: #f4f7f6;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--navy);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .profile-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--orange);
+            object-fit: cover;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin-top: 30px;
+        }
+
+        .nav-menu li {
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(255, 69, 0, 0.2);
+            color: var(--orange);
+        }
+
+        .nav-menu li.active {
+            background: var(--orange);
+        }
+
+        .main {
+            margin-left: 280px;
+            padding: 40px;
+            width: 100%;
+        }
+
+        .step-indicator {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .pos-title {
+            font-weight: bold;
+            color: var(--navy);
+            margin-top: 25px;
+            text-transform: uppercase;
+        }
+
+        .confirmation-card {
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 25px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+            max-width: 550px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .voted-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #3a86ff;
+            color: white;
+            padding: 6px 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            border-bottom-left-radius: 12px;
+        }
+
+        .cand-thumb {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-right: 25px;
+            border: 2px solid #eee;
+        }
+
+        .cand-info h4 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 1.4em;
+        }
+
+        .cand-info p {
+            margin: 5px 0;
+            font-size: 1em;
+            color: #555;
+        }
+
+        .confirm-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: fit-content;
+            border: 1px dashed #ccc;
+        }
+
+        .confirm-item input[type="checkbox"] {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .final-oath {
+            background: #fff5f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--orange);
+        }
+
+        .btn-submit {
+            background: #e63946;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 550px;
+            font-size: 1.1em;
+            transition: 0.3s;
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .edit-link {
+            color: #e63946;
+            text-decoration: none;
+            font-size: 0.9em;
+            margin-top: 15px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="profile-card">
+            <img src="{{ url_for('static', filename='uploads/' + student.image_path) }}" class="profile-img">
+            <h3>{{ student.name }}</h3>
+            <p></p>
+            {{ student.student_id }} | {{ student.class }}
+        </div>
+        <ul class="nav-menu">
+            <li onclick="window.location.href='/student_portal/{{ student.student_id }}'"> Dashboard
+            </li>
+            <li onclick="window.location.href='/election_ballot/{{ student.student_id }}'" class="active"> Election
+                Ballot</li>
+            <li onclick="showTab('volunteer', this)"> Volunteer for Office</li>
+            <li onclick="window.location.href='/election_result/{{ student.student_id }}'"> Election Results</li>
+            <li onclick="window.location.href='/'" style="color: #ff9999; margin-top: 15px;">🚪 Log Out</li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <h1>Confirm Your Vote</h1>
+        <div class="step-indicator">
+            DONE: Dashboard &rarr; <span style="font-weight:bold; color:var(--navy)">[Step 2: SELECTION IN
+                PROGRESS]</span> &rarr; Step 3: CAST BALLOT
+        </div>
+
+        <div id="ballot-preview-container">
+        </div>
+
+        <div class="final-oath">
+            <input type="checkbox" id="oath" onchange="toggleSubmit()">
+            <label for="oath"><b>I swear that all choices above are true and correct.</b></label>
+        </div>
+
+        <button id="finalSubmit" class="btn-submit" disabled onclick="finalizeVote()">SUBMIT FINAL
+            BALLOT</button>
+        <p style="font-size: 0.8em; color: #666; margin-top: 5px;">Once submitted, your vote is permanent and cannot be
+            altered.</p>
+
+        <a href="/student_portal/{{ student.student_id }}" class="edit-link">&larr; Edit Choices</a>
+    </div>
+
+    <script>
+        async function loadPreview() {
+            const rawData = localStorage.getItem('temp_ballot');
+            if (!rawData) {
+                alert("No selections found!");
+                window.location.href = "/student_portal/{{ student.student_id }}";
+                return;
+            }
+
+            const selections = JSON.parse(rawData);
+            const res = await fetch('/api/candidates');
+            const candidates = await res.json();
+
+            const container = document.getElementById('ballot-preview-container');
+            let html = '';
+
+            for (const [position, candId] of Object.entries(selections)) {
+                const c = candidates.find(item => item.id == candId);
+                if (c) {
+                    html += `
+                <div class="pos-title">OFFICE OF ${position}</div>
+                <div class="confirmation-card">
+                    <div class="voted-badge">VOTED</div>
+                    <img src="/static/uploads/${c.image_path}" class="cand-thumb" onerror="this.src='/static/images/default_avatar.png'">
+                    <div class="cand-info">
+                        <h4>${c.name}</h4>
+                        <p>Grade: ${c.class_room} | Voted as: <b>${position}</b></p>
+                    </div>
+                </div>
+                <div class="confirm-item">
+                    <input type="checkbox" class="pos-confirm" onchange="toggleSubmit()"> 
+                    <label>I confirm my selection for ${position}.</label>
+                </div>
+            `;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        function toggleSubmit() {
+            const oathChecked = document.getElementById('oath').checked;
+
+            const allConfirmations = document.querySelectorAll('.pos-confirm');
+
+            let allPositionsConfirmed = true;
+            allConfirmations.forEach(cb => {
+                if (!cb.checked) allPositionsConfirmed = false;
+            });
+
+            const btn = document.getElementById('finalSubmit');
+            btn.disabled = !(oathChecked && allPositionsConfirmed);
+        }
+
+        async function finalizeVote() {
+            const rawData = localStorage.getItem('temp_ballot');
+            const selections = JSON.parse(rawData);
+            const idList = Object.values(selections);
+
+            try {
+                const res = await fetch('/api/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: "{{ student.student_id }}",
+                        candidate_ids: idList
+                    })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert("VOTE CAST SUCCESSFULLY!");
+                    localStorage.removeItem('temp_ballot');
+                    window.location.href = "/student_portal/{{ student.student_id }}";
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                alert("Server error. Please try again.");
+            }
+        }
+        window.onload = loadPreview;
+    </script>
+</body>
+
+</html>

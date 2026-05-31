@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosebud Admin | Control Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --navy: #002147;
+            --orange: #ff4500;
+            --light-grey: #f4f7f6;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light-grey);
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: var(--navy);
+            color: white;
+            position: fixed;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .profile-section {
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--orange);
+            margin-bottom: 10px;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-links li {
+            padding: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .nav-links li:hover {
+            background: rgba(255, 69, 0, 0.2);
+            color: var(--orange);
+        }
+
+        .nav-links li.active {
+            background: var(--orange);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: var(--navy);
+            border-left: 5px solid var(--orange);
+            padding-left: 15px;
+            margin-top: 0;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .btn-action {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-action:hover {
+            background: var(--orange);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        #dashboard-section {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <img src="{{ url_for('static', filename='images/School-logo.png') }}" class="profile-pic">
+            <h3>Admin Panel</h3>
+            <p style="font-size: 0.8em; opacity: 0.7;">Election Manager</p>
+        </div>
+        <ul class="nav-links">
+            <li class="tab-btn active" onclick="showTab('dashboard-section', this)">Dashboard</li>
+            <li class="tab-btn" onclick="showTab('manage-section', this)">Manage Students</li>
+            <li class="tab-btn" onclick="showTab('settings-section', this)">Settings</li>
+            <hr style="opacity: 0.2;">
+            <li onclick="window.location.href='/admin/election_ballot'">View Ballot</li>
+            {% if student %}
+            <li onclick="window.location.href='/election_result/{{ student.student_id }}'">Election Results</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div id="dashboard-section" class="tab-content">
+            <h1>Welcome back, Admin</h1>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Register New Student</h3>
+                    <input type="text" id="reg_id" placeholder="Student ID">
+                    <input type="text" id="reg_name" placeholder="Full Name">
+                    <input type="text" id="reg_class" placeholder="Class">
+                    <input type="file" id="reg_image" accept="image/*">
+                    <button class="btn-action" onclick="registerStudent()">Add Student Record</button>
+                </div>
+
+                <div class="card">
+                    <h3>Appoint Candidate</h3>
+                    <p>Select a registered student to run for office.</p>
+                    <select id="cand_student_select">
+                        <option value="">-- Load Students First --</option>
+                    </select>
+                    <select id="cand_position">
+                        <option value="">-- Select Position --</option>
+                        <option>Student Council President</option>
+                        <option>Vice President</option>
+                        <option>Minister of ICT & Library</option>
+                        <option>Minister of Works & Labour</option>
+                        <option>Minister of Food & Power</option>
+                        <option>Minister of Social Affairs</option>
+                        <option>Minister of Health/Sanitation</option>
+                        <option>Minister of Laboratory</option>
+                        <option>Minister of Information/Publicity</option>
+                        <option>Minister of Sports (Male)</option>
+                        <option>Minister of Sports (Female)</option>
+                        <option>Senator</option>
+                    </select>
+                    <button class="btn-action" onclick="registerCandidate()" style="background: var(--orange);">Add to
+                        Ballot</button>
+                    <button onclick="refreshStudentList()"
+                        style="background:none; border:none; color:var(--navy); cursor:pointer; margin-top:10px; font-size:0.8em;">🔄
+                        Refresh Student List</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="manage-section" class="tab-content">
+            <h1>Manage Students</h1>
+            <div class="card">
+                <h3>Find & Edit Student</h3>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="search_sid" placeholder="Enter Student ID to Search...">
+                    <button class="btn-action" onclick="findStudent()" style="width:150px;">Search</button>
+                </div>
+
+                <div id="edit-form" style="display:none; margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img id="edit_preview" src=""
+                            style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--orange);">
+                        <h4 id="edit_display_name" style="margin-top:10px;">Editing...</h4>
+                    </div>
+
+                    <label style="font-size: 0.8em; color: #666;">Full Name</label>
+                    <input type="text" id="edit_name" placeholder="Name">
+
+                    <label style="font-size: 0.8em; color: #666;">Class</label>
+                    <input type="text" id="edit_class" placeholder="Class">
+
+                    <label style="font-size: 0.8em; color: #666;">Update Photo (Optional)</label>
+                    <input type="file" id="edit_image" accept="image/*">
+
+                    <div style="display:flex; gap:10px; margin-top: 20px;">
+                        <button class="btn-action" onclick="saveStudentUpdate()">Update Profile</button>
+                        <button class="btn-action" onclick="confirmDelete()" style="background:#dc3545;">Delete
+                            Permanently</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-section" class="tab-content">
+            <h1>Election Settings</h1>
+            <div class="card">
+                <h3>Results Visibility</h3>
+                <p>Toggle whether students can view the results page.</p>
+                <button id="toggleBtn" class="btn-action" onclick="toggleResults()">Loading...</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(sectionId, btn) {
+            document.querySelectorAll('.tab-content').forEach(section => section.style.display = 'none');
+            const target = document.getElementById(sectionId);
+            if (target) target.style.display = 'block';
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        async function registerStudent() {
+            const id = document.getElementById('reg_id').value.toUpperCase().trim();
+            const name = document.getElementById('reg_name').value.trim();
+            const className = document.getElementById('reg_class').value.trim();
+            const fileInput = document.getElementById('reg_image');
+
+            if (!id || !name || !className) {
+                return alert("Please fill in all student details!");
+            }
+
+            const formData = new FormData();
+            formData.append('student_id', id);
+            formData.append('name', name);
+            formData.append('class', className);
+
+            if (fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/admin/add_student', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert("Student Registered Successfully!");
+                    document.getElementById('reg_id').value = "";
+                    document.getElementById('reg_name').value = "";
+                    document.getElementById('reg_class').value = "";
+                    fileInput.value = "";
+                    refreshStudentList();
+                } else {
+                    const error = await res.json();
+                    alert("Error: " + error.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server connection failed.");
+            }
+        }
+
+        async function registerCandidate() {
+            const sid = document.getElementById('cand_student_select').value;
+            const pos = document.getElementById('cand_position').value;
+
+            if (!sid || !pos) {
+                return alert("Please select both a student and a position!");
+            }
+
+            try {
+                const res = await fetch('/api/admin/add_candidate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id: sid, position: pos })
+                });
+
+                if (res.ok) {
+                    alert("Candidate added to ballot!");
+                } else {
+                    alert("Failed to add candidate.");
+                }
+            } catch (err) {
+                alert("Error connecting to server.");
+            }
+        }
+
+        async function refreshStudentList() {
+            try {
+                const res = await fetch('/api/students');
+                const students = await res.json();
+                const select = document.getElementById('cand_student_select');
+                select.innerHTML = '<option value="">-- Select a Student --</option>';
+
+                students.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.student_id;
+                    option.textContent = `${s.name} (${s.student_id})`;
+                    option.setAttribute('data-class', s.class || 'General');
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error("Failed to load students:", err);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/admin/settings');
+                const data = await res.json();
+                const btn = document.getElementById('toggleBtn');
+                btn.innerText = data.show_results ? "Hide Results (Public)" : "Publish Results (Hidden)";
+                btn.style.background = data.show_results ? "#dc3545" : "#28a745";
+            } catch (err) {
+                console.error("Failed to load settings:", err);
+            }
+        }
+
+        async function findStudent() {
+            const sid = document.getElementById('search_sid').value.toUpperCase().trim();
+            if (!sid) return;
+
+            try {
+                const encodedSid = encodeURIComponent(sid);
+                const res = await fetch(`/api/admin/get_student/${encodedSid}`);
+
+                if (res.ok) {
+                    const s = await res.json();
+                    document.getElementById('edit-form').style.display = 'block';
+                    document.getElementById('edit_display_name').innerText = `Editing: ${s.name} (${s.student_id})`;
+                    document.getElementById('edit_name').value = s.name;
+                    document.getElementById('edit_class').value = s.class;
+
+                    const preview = document.getElementById('edit_preview');
+                    preview.src = `/static/uploads/${s.image_path || 'default.png'}`;
+                } else {
+                    alert("Student ID not found!");
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function saveStudentUpdate() {
+            const sid = document.getElementById('search_sid').value.toUpperCase();
+            const name = document.getElementById('edit_name').value;
+            const classVal = document.getElementById('edit_class').value;
+            const fileInput = document.getElementById('edit_image');
+
+            const formData = new FormData();
+            formData.append('student_id', sid);
+            formData.append('name', name);
+            formData.append('class', classVal);
+
+            if (fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            const res = await fetch('/api/admin/update_student', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                alert("Student Profile Updated Successfully!");
+                findStudent();
+                refreshStudentList();
+            } else {
+                alert("Update failed. Please try again.");
+            }
+        }
+
+        async function confirmDelete() {
+            const sid = document.getElementById('search_sid').value.toUpperCase();
+            if (confirm(`Are you sure you want to PERMANENTLY delete ${sid}? This cannot be undone.`)) {
+                const res = await fetch(`/api/admin/delete_student/${sid}`, { method: 'POST' });
+                if (res.ok) {
+                    alert("Student deleted.");
+                    document.getElementById('edit-form').style.display = 'none';
+                    document.getElementById('search_sid').value = "";
+                    refreshStudentList();
+                }
+            }
+        }
+
+        async function toggleResults() {
+            const btn = document.getElementById('toggleBtn');
+            const currentState = btn.innerText.includes("Hide");
+            const newState = !currentState;
+
+            try {
+                const res = await fetch('/api/admin/toggle_results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visible: newState })
+                });
+
+                if (res.ok) {
+                    btn.innerText = newState ? "Hide Results (Public)" : "Publish Results (Hidden)";
+                    btn.style.background = newState ? "#dc3545" : "#28a745";
+                    alert(`Results are now ${newState ? 'VISIBLE' : 'HIDDEN'} to students.`);
+                } else {
+                    alert("Failed to update settings.");
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Connection error.");
+            }
+        }
+
+        window.onload = function () {
+            refreshStudentList();
+            loadSettings();
+        }
+    </script>
+</body>
+
+</html>
